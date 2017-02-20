@@ -11,7 +11,6 @@ class Vgg:
     def __init__(self):
         print "Hello from Vgg()"
         self.create()  # create model
-        self.load_imagenet_class_index()
 
     def create(self):
         model = self.model = Sequential()
@@ -62,8 +61,8 @@ class Vgg:
         sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
         model.compile(optimizer=sgd, loss='categorical_crossentropy')
 
-    def load_imagenet_class_index(self):
-        with open('c:/Users/Aravindh/models/imagenet_class_index.json') as data_file:
+    def load_imagenet_class_index(self, imagenet_file):
+        with open(imagenet_file) as data_file:
             self.imagenet_index = json.load(data_file)
 
     def load_weights(self, weights_file):
