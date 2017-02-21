@@ -2,6 +2,8 @@ from keras.models import Sequential
 from keras.layers.core import Flatten, Dense, Dropout
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.optimizers import SGD
+from keras.preprocessing import image
+
 import cv2
 import json
 import numpy as np
@@ -57,9 +59,7 @@ class Vgg:
         model.add(Dense(4096, activation='relu'))  # layer15 (inner_product)
         model.add(Dropout(0.5))
         model.add(Dense(1000, activation='softmax'))  # layer16 fully connected (inner_product)
-
-        sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-        model.compile(optimizer=sgd, loss='categorical_crossentropy')
+        self.compile(lr=0.01)
 
     def load_imagenet_class_index(self, imagenet_file):
         with open(imagenet_file) as data_file:
@@ -76,3 +76,21 @@ class Vgg:
         im = im.transpose((2, 0, 1))
         im = np.expand_dims(im, axis=0)
         return self.model.predict(im)
+
+    def get_batches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'):
+        return gen.flow_from_directory(path,target_size=(224,224), class_mode=class_mode, shuffle=shuffle, batch_size=batch_size)
+
+    def finetune(self, num_classes):
+        model = self.model
+        model.pop()
+        for layer in model.layers: layer.trainable=False
+        model.add(Dense(num_classes, activation='softmax'))
+        self.compile()
+
+    def compile(self, lr=0.001):
+        sgd = SGD(lr, decay=1e-6, momentum=0.9, nesterov=True)
+        self.model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
+
+    def fit(self, train_batches, val_batches, nb_epoch=1):
+        self.model.fit_generator(train_batches, samples_per_epoch=train_batches.nb_sample, nb_epoch=nb_epoch,
+                                 validation_data=val_batches, nb_val_samples=val_batches.nb_sample)
