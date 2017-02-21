@@ -94,3 +94,8 @@ class Vgg:
     def fit(self, train_batches, val_batches, nb_epoch=1):
         self.model.fit_generator(train_batches, samples_per_epoch=train_batches.nb_sample, nb_epoch=nb_epoch,
                                  validation_data=val_batches, nb_val_samples=val_batches.nb_sample)
+
+    def predict(self, path, batch_size=8):
+        test_batches = self.get_batches(path, shuffle=False, batch_size=batch_size, class_mode=None)
+        return test_batches, self.model.predict_generator(test_batches, test_batches.nb_sample)
+    
