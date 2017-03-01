@@ -13,7 +13,7 @@ while 1 :
     cpuString = raw_input("Enter match string:  ").split()
     if 'quit' in cpuString : 
         print "done"
-        exit()
+        break
     for txt in hwModelSoup:
         model = txt.find(text=True)
         if [s for s in cpuString if not s in model] :  continue
